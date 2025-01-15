@@ -1,0 +1,6 @@
+pathspec==0.12.1
+PyYAML==6.0.2
+yamale==5.2.1
+yamllint==1.35.1
+pytest==8.3.4
+snowflake-connector-python==3.12.4

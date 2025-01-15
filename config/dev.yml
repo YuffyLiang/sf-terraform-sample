@@ -1,0 +1,23 @@
+databases:
+  - name: dev__raw
+    comment: Development database for all raw schemas, where the data first lands, to be dynamically built
+  - name: dev__source
+    comment: Development database for all source schemas, to be dynamically built
+  - name: dev__build
+    comment: Development database for builds, to be dynamically built
+  - name: dev__mart
+    comment: Development database for MART, to be dynamically built
+
+resource_monitors:
+  - name: loans_au_dev_monitor
+    credit_quota: 20
+    frequency: MONTHLY
+    notify: 55
+    suspend: 85
+    suspend_immediate: 95
+
+warehouses:
+  - name: dev__loans_au_wh
+    warehouse_size: XSMALL
+    comment: Dedicated for loans AU development
+    resource_monitor: loans_au_dev_monitor

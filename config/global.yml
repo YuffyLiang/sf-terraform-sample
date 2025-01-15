@@ -1,0 +1,121 @@
+databases:
+  - name: shared_services
+    comment: Holds shared services and governance
+    schemas:
+      - name: governance
+      - name: utility
+
+resource_monitors:
+  - name: operations_monitor
+    credit_quota: 40
+    frequency: MONTHLY
+    notify: 55
+    suspend: 85
+    suspend_immediate: 95
+
+warehouses:
+  - name: infra_wh
+    warehouse_size: XSMALL
+    resource_monitor: operations_monitor
+    comment: Dedicated for infra development
+  - name: telemetry_wh
+    warehouse_size: XSMALL
+    resource_monitor: operations_monitor
+    comment: Dedicated for telemetry use
+
+roles:
+  - name: loans__prod_role
+    ad_group: true
+    schema_write:
+      - tst__build.loans_au
+      - tst__mart.loans_au
+      - prd__build.loans_au
+      - prd__mart.loans_au
+    warehouse_usage:
+      - prd__loans_au_etl_wh
+    child_roles:
+      - name: loans__developer_role
+        ad_group: true
+        schema_read:
+          - tst__source.sf_crm
+          - tst__source.sf_mrc
+          - tst__source.katabat
+          - tst__build.loans_au
+          - tst__mart.loans_au
+          - prd__source.sf_crm
+          - prd__source.sf_mrc
+          - prd__source.katabat
+          - prd__build.loans_au
+          - prd__mart.loans_au
+        database_write:
+          - dev__source
+          - dev__build
+          - dev__mart
+        warehouse_usage:
+          - dev__loans_au_wh
+        warehouse_monitor:
+          - dev__loans_au_wh
+          - tst__loans_au_bi_wh
+          - prd__loans_au_etl_wh
+          - prd__loans_au_bi_wh
+        account_privileges:
+          - EXECUTE TASK
+          - APPLY MASKING POLICY
+        extra_database_roles:
+          - SNOWFLAKE.DOCUMENT_INTELLIGENCE_CREATOR
+      - name: loans__business_role
+        ad_group: true
+        schema_read:
+          - prd__mart.loans_au
+        warehouse_usage:
+          - prd__loans_au_bi_wh
+        extra_database_roles:
+          - SNOWFLAKE.CORTEX_USER
+  - name: governance__role
+    ad_group: true
+    schema_read:
+      - shared_services.governance
+    schema_write:
+      - shared_services.governance
+    warehouse_usage:
+      - infra_wh
+    account_privileges:
+      - EXECUTE TASK
+      - APPLY MASKING POLICY
+    extra_database_roles:
+      - SNOWFLAKE.GOVERNANCE_VIEWER
+  - name: finance__role
+    ad_group: true
+  - name: operations__role
+    ad_group: true
+    child_roles:
+      - name: monitoring__role
+        ad_group: true
+        warehouse_usage:
+          - telemetry_wh
+        imported_privileges:
+          - snowflake
+      - name: help_desk__role
+        ad_group: true
+        warehouse_usage:
+          - infra_wh
+        application_roles:
+          - SNOWFLAKE.TRUST_CENTER_VIEWER
+
+data_classification_tags:
+  - name: restricted
+    values:
+      - name: authentication
+      - name: cardholder
+      - name: health
+      - name: employment
+  - name: confidential
+    values:
+      - name: commercial
+      - name: pii
+  - name: internal
+    values:
+      - name: usage
+  - name: public
+    values:
+      - name: public

@@ -1,0 +1,17 @@
+variable "database_name" {
+  description = "Name of database"
+  type        = string
+}
+
+variable "data_retention_time_in_days" {
+  type = number
+}
+
+variable "comment" {
+  type = string
+}
+
+variable "schemas" {
+  type    = list(map(any))
+  default = [{}]
+}
